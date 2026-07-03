@@ -3,6 +3,8 @@
 import { XIcon } from "lucide-react";
 import { useRequestClient } from "@/core/network/requests";
 import { isWasm } from "@/core/wasm/utils";
+import { getIframeCapabilities } from "@/utils/capabilities";
+import { asURL } from "@/utils/url";
 import { useImperativeModal } from "../../modal/ImperativeModal";
 import { AlertDialogDestructiveAction } from "../../ui/alert-dialog";
 import { Tooltip } from "../../ui/tooltip";
@@ -23,9 +25,14 @@ export const ShutdownButton: React.FC<Props> = ({
   const { sendShutdown } = useRequestClient();
   const handleShutdown = () => {
     sendShutdown();
-    // Let the shutdown process start before closing the window.
+    // Let the shutdown process start before closing the window or navigating.
     setTimeout(() => {
-      window.close();
+      if (getIframeCapabilities().isEmbedded) {
+        // Navigate to the home page without adding the broken notebook to history.
+        window.location.replace(asURL("/").toString());
+      } else {
+        window.close();
+      }
     }, 200);
   };
 

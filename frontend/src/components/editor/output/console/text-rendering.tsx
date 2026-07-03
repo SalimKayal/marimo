@@ -5,6 +5,7 @@ import parse, { type DOMNode, Text } from "html-react-parser";
 import React, { useMemo } from "react";
 import { useInstallPackages } from "@/core/packages/useInstallPackage";
 import { Events } from "@/utils/events";
+import { getLinkProps } from "@/utils/link-target";
 import { parseContent } from "@/utils/url-parser";
 
 const ansiUp = new AnsiUp();
@@ -118,12 +119,13 @@ export function processTextForUrls(
         const key = keyPrefix ? `${keyPrefix}-${idx}` : idx;
         if (part.type === "url") {
           const cleanUrl = cleanAnsiCodes(part.url);
+          const { target, rel } = getLinkProps(cleanUrl);
           return (
             <a
               key={key}
               href={cleanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={target}
+              rel={rel}
               onClick={Events.stopPropagation()}
               className="text-link hover:underline"
             >
@@ -134,12 +136,13 @@ export function processTextForUrls(
         if (part.type === "image") {
           // For console output, just render images as links
           const cleanUrl = cleanAnsiCodes(part.url);
+          const { target, rel } = getLinkProps(cleanUrl);
           return (
             <a
               key={key}
               href={cleanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={target}
+              rel={rel}
               onClick={Events.stopPropagation()}
               className="text-link hover:underline"
             >

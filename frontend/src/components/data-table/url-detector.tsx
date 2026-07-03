@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Events } from "@/utils/events";
+import { getLinkProps } from "@/utils/link-target";
 import type { ContentPart } from "@/utils/url-parser";
 
 const ImageWithFallback = ({ url }: { url: string }) => {
@@ -108,11 +109,12 @@ export const UrlDetector = ({ parts }: { parts: ContentPart[] }) => {
 };
 
 const URLAnchor = ({ url }: { url: string }) => {
+  const { target, rel } = getLinkProps(url);
   return (
     <a
       href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={target}
+      rel={rel}
       onClick={Events.stopPropagation()}
       className="text-link hover:underline"
     >

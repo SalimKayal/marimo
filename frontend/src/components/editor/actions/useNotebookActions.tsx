@@ -89,6 +89,7 @@ import { Objects } from "@/utils/objects";
 import type { ProgressState } from "@/utils/progress";
 import { Strings } from "@/utils/strings";
 import { newNotebookURL } from "@/utils/urls";
+import { openUrl } from "@/utils/links";
 import { useRunAllCells } from "../cell/useRunCells";
 import { useChromeActions, useChromeState } from "../chrome/state";
 import { isPanelHidden, PANELS } from "../chrome/types";
@@ -694,7 +695,7 @@ export function useNotebookActions() {
       hidden: !location.search.includes("file"),
       handle: () => {
         const withoutSearch = document.baseURI.split("?")[0];
-        window.open(withoutSearch, "_blank", "noopener");
+        openUrl(withoutSearch);
       },
     },
 
@@ -706,7 +707,7 @@ export function useNotebookActions() {
       hidden: !location.search.includes("file"),
       handle: () => {
         const url = newNotebookURL();
-        window.open(url, "_blank");
+        openUrl(url);
       },
     },
   ];

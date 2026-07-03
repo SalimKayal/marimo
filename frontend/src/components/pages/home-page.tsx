@@ -46,7 +46,7 @@ import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Tooltip } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
-import { getSessionId, isSessionId } from "@/core/kernel/session";
+import { isSessionId } from "@/core/kernel/session";
 import { useRequestClient } from "@/core/network/requests";
 import type { FileInfo, MarimoFile } from "@/core/network/types";
 import { combineAsyncData, useAsyncData } from "@/hooks/useAsyncData";
@@ -59,6 +59,7 @@ import { prettyError } from "@/utils/errors";
 import { Maps } from "@/utils/maps";
 import { Paths } from "@/utils/paths";
 import { asURL } from "@/utils/url";
+import { getLinkProps } from "@/utils/link-target";
 import { newNotebookURL } from "@/utils/urls";
 import { ConfigButton } from "../app-config/app-config-button";
 import { ErrorBoundary } from "../editor/boundary/ErrorBoundary";
@@ -77,10 +78,6 @@ import {
 import { Spinner } from "../icons/spinner";
 import { Input } from "../ui/input";
 
-function tabTarget(path: string) {
-  // Consistent tab target so we open in the same tab when clicking on the same notebook
-  return `${getSessionId()}-${encodeURIComponent(path)}`;
-}
 
 const HomePage: React.FC = () => {
   const [nonce, setNonce] = useState(0);
@@ -381,12 +378,15 @@ const Node = ({ node, style }: NodeRendererProps<FileInfo>) => {
     const isMarkdown =
       relativePath.endsWith(".md") || relativePath.endsWith(".qmd");
     const isRunning = runningNotebooks.has(relativePath);
+    const href = asURL(`?file=${encodeURIComponent(relativePath)}`).toString();
+    const { target, rel } = getLinkProps(href, { targetKey: relativePath });
 
     return (
       <a
         className={itemClassName}
-        href={asURL(`?file=${encodeURIComponent(relativePath)}`).toString()}
-        target={tabTarget(relativePath)}
+        href={href}
+        target={target}
+        rel={rel}
       >
         {iconEl}
         <span className="flex-1 overflow-hidden text-ellipsis">
@@ -513,13 +513,18 @@ const MarimoFileComponent = ({ file }: { file: MarimoFile }) => {
     : asURL(`?file=${encodeURIComponent(file.path)}`);
 
   const isMarkdown = file.path.endsWith(".md");
+  const url = href.toString();
+  const { target, rel } = getLinkProps(url, {
+    targetKey: file.initializationId || file.path,
+  });
 
   return (
     <a
       className="py-1.5 px-4 hover:bg-(--blue-2) hover:text-primary transition-all duration-300 cursor-pointer group relative flex gap-4 items-center"
       key={file.path}
-      href={href.toString()}
-      target={tabTarget(file.initializationId || file.path)}
+      href={url}
+      target={target}
+      rel={rel}
     >
       <div className="flex flex-col justify-between flex-1">
         <span className="flex items-center gap-2">
@@ -615,6 +620,7 @@ const SessionShutdownButton: React.FC<{ filePath: string }> = ({
 
 const CreateNewNotebook: React.FC = () => {
   const url = newNotebookURL();
+  const { target, rel } = getLinkProps(url);
   return (
     <a
       className="relative rounded-lg p-6 group
@@ -622,8 +628,8 @@ const CreateNewNotebook: React.FC = () => {
       transition-all duration-300 cursor-pointer
       "
       href={url}
-      target="_blank"
-      rel="noreferrer"
+      target={target}
+      rel={rel}
     >
       <h2 className="text-lg font-semibold">Create a new notebook</h2>
       <div className="group-hover:opacity-100 opacity-0 absolute right-5 top-0 bottom-0 rounded-lg flex items-center justify-center transition-all duration-300">

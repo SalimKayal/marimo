@@ -1,5 +1,6 @@
 /* Copyright 2026 Marimo. All rights reserved. */
 import DOMPurify, { type Config } from "dompurify";
+import { getLinkProps } from "@/utils/link-target";
 
 // preserve target=_blank https://github.com/cure53/DOMPurify/issues/317#issuecomment-912474068
 // Guard for non-browser environments (e.g. Node.js in the marimo-lsp extension)
@@ -23,9 +24,13 @@ if (typeof document !== "undefined") {
 
   DOMPurify.addHook("afterSanitizeAttributes", (node) => {
     if (node.tagName === "A" && node.hasAttribute(TEMPORARY_ATTRIBUTE)) {
-      node.setAttribute("target", node.getAttribute(TEMPORARY_ATTRIBUTE) || "");
+      let target = node.getAttribute(TEMPORARY_ATTRIBUTE) || "";
+      if (target === "_blank") {
+        target = getLinkProps(node.getAttribute("href") || "").target;
+      }
+      node.setAttribute("target", target);
       node.removeAttribute(TEMPORARY_ATTRIBUTE);
-      if (node.getAttribute("target") === "_blank") {
+      if (target === "_blank") {
         node.setAttribute("rel", "noopener noreferrer");
       }
     }

@@ -20,6 +20,7 @@ import { cn } from "@/utils/cn";
 import { copyToClipboard } from "@/utils/copy";
 import { jsonParseWithSpecialChar } from "@/utils/json/json-parser";
 import { isUrl } from "@/utils/urls";
+import { getLinkProps } from "@/utils/link-target";
 import { useTheme } from "../../../theme/useTheme";
 import { logNever } from "../../../utils/assertNever";
 import { OutputRenderer } from "../Output";
@@ -277,16 +278,19 @@ const URL_TYPE = defineDataType<string>({
   ...stringType,
   is: (value) => isUrl(value),
   PostComponent: PyCopyButton,
-  Component: ({ value }) => (
-    <a
-      href={value}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-link hover:underline"
-    >
-      {value}
-    </a>
-  ),
+  Component: ({ value }) => {
+    const { target, rel } = getLinkProps(value);
+    return (
+      <a
+        href={value}
+        target={target}
+        rel={rel}
+        className="text-link hover:underline"
+      >
+        {value}
+      </a>
+    );
+  },
 });
 
 const INTEGER_TYPE = defineDataType<number>({

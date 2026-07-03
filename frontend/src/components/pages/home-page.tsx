@@ -78,7 +78,6 @@ import {
 import { Spinner } from "../icons/spinner";
 import { Input } from "../ui/input";
 
-
 const HomePage: React.FC = () => {
   const [nonce, setNonce] = useState(0);
   const { getRecentFiles, getRunningNotebooks } = useRequestClient();
@@ -382,12 +381,7 @@ const Node = ({ node, style }: NodeRendererProps<FileInfo>) => {
     const { target, rel } = getLinkProps(href, { targetKey: relativePath });
 
     return (
-      <a
-        className={itemClassName}
-        href={href}
-        target={target}
-        rel={rel}
-      >
+      <a className={itemClassName} href={href} target={target} rel={rel}>
         {iconEl}
         <span className="flex-1 overflow-hidden text-ellipsis">
           {node.data.name}

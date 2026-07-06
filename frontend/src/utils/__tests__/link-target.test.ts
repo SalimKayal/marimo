@@ -1,12 +1,14 @@
 /* Copyright 2026 Marimo. All rights reserved. */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as capabilities from "@/utils/capabilities";
+import type * as config from "@/core/config/config";
 import { getLinkProps, isInternalUrl } from "../link-target";
 
 const mocks = vi.hoisted(() => {
   return {
     sessionId: "s_abcdef",
     embedded: false,
+    iframeEmbedded: false,
   };
 });
 
@@ -26,6 +28,18 @@ vi.mock("@/utils/capabilities", async (importOriginal) => {
       hasDownloads: true,
       hasFullscreen: true,
       hasMediaDevices: true,
+    })),
+  };
+});
+
+vi.mock("@/core/config/config", async (importOriginal) => {
+  const actual = await importOriginal<typeof config>();
+  return {
+    ...actual,
+    getResolvedMarimoConfig: vi.fn(() => ({
+      server: {
+        iframe_embedded: mocks.iframeEmbedded,
+      },
     })),
   };
 });
@@ -67,24 +81,37 @@ describe("isInternalUrl", () => {
 describe("getLinkProps", () => {
   beforeEach(() => {
     mocks.embedded = false;
+    mocks.iframeEmbedded = false;
     vi.unstubAllGlobals();
   });
 
-  it("returns _self when embedded and the URL is internal", () => {
+  it("returns _blank with rel when embedded but iframe_embedded is disabled", () => {
     mocks.embedded = true;
+    mocks.iframeEmbedded = false;
+    expect(getLinkProps("/?file=notebook.py")).toEqual({
+      target: "_blank",
+      rel: "noopener noreferrer",
+    });
+  });
+
+  it("returns _self when embedded, iframe_embedded is enabled, and the URL is internal", () => {
+    mocks.embedded = true;
+    mocks.iframeEmbedded = true;
     expect(getLinkProps("/?file=notebook.py")).toEqual({ target: "_self" });
   });
 
-  it("returns _blank with rel when embedded and the URL is external", () => {
+  it("returns _blank with rel when embedded, iframe_embedded is enabled, and the URL is external", () => {
     mocks.embedded = true;
+    mocks.iframeEmbedded = true;
     expect(getLinkProps("https://example.com/notebook.py")).toEqual({
       target: "_blank",
       rel: "noopener noreferrer",
     });
   });
 
-  it("returns _blank with rel when embedded and the URL is outside the base URI", () => {
+  it("returns _blank with rel when embedded, iframe_embedded is enabled, and the URL is outside the base URI", () => {
     mocks.embedded = true;
+    mocks.iframeEmbedded = true;
     vi.stubGlobal("document", {
       ...document,
       baseURI: "http://localhost:3000/marimo/",

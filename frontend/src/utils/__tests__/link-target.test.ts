@@ -1,7 +1,7 @@
 /* Copyright 2026 Marimo. All rights reserved. */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as capabilities from "@/utils/capabilities";
-import { getLinkProps, isSameOrigin } from "../link-target";
+import { getLinkProps, isInternalUrl } from "../link-target";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -30,23 +30,52 @@ vi.mock("@/utils/capabilities", async (importOriginal) => {
   };
 });
 
-describe("isSameOrigin", () => {
-  it("returns true for a local path", () => {
-    expect(isSameOrigin("/?file=notebook.py")).toBe(true);
+describe("isInternalUrl", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns true for a local path under the base URI", () => {
+    expect(isInternalUrl("/?file=notebook.py")).toBe(true);
   });
 
   it("returns false for an external URL", () => {
-    expect(isSameOrigin("https://example.com/notebook.py")).toBe(false);
+    expect(isInternalUrl("https://example.com/notebook.py")).toBe(false);
+  });
+
+  it("returns false for a same-origin URL outside the base URI path", () => {
+    vi.stubGlobal("document", {
+      ...document,
+      baseURI: "http://localhost:3000/marimo/",
+    });
+    expect(isInternalUrl("http://localhost:3000/other-app/notebook.py")).toBe(
+      false,
+    );
+  });
+
+  it("returns true for a URL under the base URI path", () => {
+    vi.stubGlobal("document", {
+      ...document,
+      baseURI: "http://localhost:3000/marimo/",
+    });
+    expect(
+      isInternalUrl("http://localhost:3000/marimo/?file=notebook.py"),
+    ).toBe(true);
   });
 });
 
 describe("getLinkProps", () => {
-  it("returns _self when embedded and same-origin", () => {
+  beforeEach(() => {
+    mocks.embedded = false;
+    vi.unstubAllGlobals();
+  });
+
+  it("returns _self when embedded and the URL is internal", () => {
     mocks.embedded = true;
     expect(getLinkProps("/?file=notebook.py")).toEqual({ target: "_self" });
   });
 
-  it("returns _blank with rel when embedded and cross-origin", () => {
+  it("returns _blank with rel when embedded and the URL is external", () => {
     mocks.embedded = true;
     expect(getLinkProps("https://example.com/notebook.py")).toEqual({
       target: "_blank",
@@ -54,8 +83,21 @@ describe("getLinkProps", () => {
     });
   });
 
+  it("returns _blank with rel when embedded and the URL is outside the base URI", () => {
+    mocks.embedded = true;
+    vi.stubGlobal("document", {
+      ...document,
+      baseURI: "http://localhost:3000/marimo/",
+    });
+    expect(getLinkProps("http://localhost:3000/other-app/notebook.py")).toEqual(
+      {
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    );
+  });
+
   it("returns a named tab target when not embedded and targetKey is provided", () => {
-    mocks.embedded = false;
     const key = "path/to/notebook.py";
     expect(getLinkProps("/?file=notebook.py", { targetKey: key })).toEqual({
       target: `s_abcdef-${encodeURIComponent(key)}`,
@@ -63,7 +105,6 @@ describe("getLinkProps", () => {
   });
 
   it("returns the same named target for the same key", () => {
-    mocks.embedded = false;
     const key = "path/to/notebook.py";
     const first = getLinkProps("/?file=notebook.py", { targetKey: key });
     const second = getLinkProps("/?file=notebook.py", { targetKey: key });
@@ -71,7 +112,6 @@ describe("getLinkProps", () => {
   });
 
   it("returns _blank with rel when not embedded and no targetKey is provided", () => {
-    mocks.embedded = false;
     expect(getLinkProps("/?file=notebook.py")).toEqual({
       target: "_blank",
       rel: "noopener noreferrer",

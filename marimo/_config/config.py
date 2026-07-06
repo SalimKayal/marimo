@@ -248,11 +248,14 @@ class ServerConfig(TypedDict):
         inside its static assets directory.
     - `disable_file_downloads`: if true, the file download button will be
         hidden in the file explorer.
+    - `iframe_embedded`: if true, internal links will navigate inside the
+        current iframe when the app is embedded instead of opening new tabs.
     """
 
     browser: Literal["default"] | str
     follow_symlink: bool
     disable_file_downloads: NotRequired[bool]
+    iframe_embedded: NotRequired[bool]
 
 
 @dataclass
@@ -749,6 +752,7 @@ DEFAULT_CONFIG: MarimoConfig = {
     "server": {
         "browser": "default",
         "follow_symlink": False,
+        "iframe_embedded": False,
     },
     "language_servers": {
         "pylsp": {

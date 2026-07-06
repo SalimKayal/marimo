@@ -203,6 +203,7 @@ export const UserConfigSchema = z
     server: z
       .looseObject({
         disable_file_downloads: z.boolean().optional(),
+        iframe_embedded: z.boolean().optional(),
       })
       .prefault(() => ({})),
     diagnostics: z

@@ -4650,7 +4650,9 @@ components:
         \ Python's webbrowser module (eg, `\"firefox\"` or `\"chrome\"`)\n    - `follow_symlink`:\
         \ if true, the server will follow symlinks it finds\n        inside its static\
         \ assets directory.\n    - `disable_file_downloads`: if true, the file download\
-        \ button will be\n        hidden in the file explorer."
+        \ button will be\n        hidden in the file explorer.\n    - `iframe_embedded`:\
+        \ if true, internal links will navigate inside the\n        current iframe\
+        \ when the app is embedded instead of opening new tabs."
       properties:
         browser:
           anyOf:
@@ -4660,6 +4662,8 @@ components:
         disable_file_downloads:
           type: boolean
         follow_symlink:
+          type: boolean
+        iframe_embedded:
           type: boolean
       required:
       - browser

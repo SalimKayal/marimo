@@ -6242,11 +6242,14 @@ export interface components {
      *             inside its static assets directory.
      *         - `disable_file_downloads`: if true, the file download button will be
      *             hidden in the file explorer.
+     *         - `iframe_embedded`: if true, internal links will navigate inside the
+     *             current iframe when the app is embedded instead of opening new tabs.
      */
     ServerConfig: {
       browser: "default" | string;
       disable_file_downloads?: boolean;
       follow_symlink: boolean;
+      iframe_embedded?: boolean;
     };
     /** Format: session-id */
     SessionId: TypedString<"SessionId">;

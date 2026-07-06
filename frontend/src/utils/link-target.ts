@@ -1,5 +1,6 @@
 /* Copyright 2026 Marimo. All rights reserved. */
 import { getSessionId } from "@/core/kernel/session";
+import { getResolvedMarimoConfig } from "@/core/config/config";
 import { getIframeCapabilities } from "./capabilities";
 import { asURL } from "./url";
 
@@ -45,7 +46,8 @@ export interface GetLinkPropsOptions {
 /**
  * Choose a link target and rel value that respects an embedded iframe context.
  *
- * - Embedded + internal to the app: navigate inside the iframe (`_self`).
+ * - Embedded + `server.iframe_embedded` enabled + internal to the app:
+ *   navigate inside the iframe (`_self`).
  * - Non-embedded + `targetKey`: reuse a named tab for that key.
  * - Otherwise: open a fresh tab (`_blank`).
  */
@@ -53,13 +55,14 @@ export function getLinkProps(
   href: string,
   options?: GetLinkPropsOptions,
 ): LinkProps {
-  if (getIframeCapabilities().isEmbedded) {
-    return isInternalUrl(href)
-      ? { target: "_self" }
-      : { target: "_blank", rel: "noopener noreferrer" };
+  const { isEmbedded } = getIframeCapabilities();
+  const iframeEmbeddedEnabled =
+    getResolvedMarimoConfig().server?.iframe_embedded ?? false;
+  if (isEmbedded && iframeEmbeddedEnabled && isInternalUrl(href)) {
+    return { target: "_self" };
   }
 
-  if (options?.targetKey) {
+  if (!isEmbedded && options?.targetKey) {
     return { target: tabTarget(options.targetKey) };
   }
 

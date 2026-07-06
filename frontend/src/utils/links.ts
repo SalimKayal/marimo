@@ -4,7 +4,7 @@ import { getLinkProps } from "./link-target";
 
 /**
  * Open a URL, staying inside the current iframe when embedded and the URL is
- * same-origin; otherwise open it in a new tab.
+ * internal to the app; otherwise open it in a new tab.
  */
 export function openUrl(url: string): void {
   const { target } = getLinkProps(url);

@@ -4,14 +4,20 @@ import { getIframeCapabilities } from "./capabilities";
 import { asURL } from "./url";
 
 /**
- * Returns true if `href` resolves to the current origin.
+ * Returns true if `href` resolves to the current app (same origin and under
+ * the document's base URI). This is stricter than a plain same-origin check and
+ * avoids treating sibling apps on the same domain as internal marimo links.
  */
-export function isSameOrigin(href: string): boolean {
+export function isInternalUrl(href: string): boolean {
   if (typeof window === "undefined" || typeof document === "undefined") {
     return false;
   }
   try {
-    return asURL(href).origin === window.location.origin;
+    const target = asURL(href);
+    const base = new URL(document.baseURI);
+    return (
+      target.origin === base.origin && target.pathname.startsWith(base.pathname)
+    );
   } catch {
     return false;
   }
@@ -39,7 +45,7 @@ export interface GetLinkPropsOptions {
 /**
  * Choose a link target and rel value that respects an embedded iframe context.
  *
- * - Embedded + same-origin: navigate inside the iframe (`_self`).
+ * - Embedded + internal to the app: navigate inside the iframe (`_self`).
  * - Non-embedded + `targetKey`: reuse a named tab for that key.
  * - Otherwise: open a fresh tab (`_blank`).
  */
@@ -48,7 +54,7 @@ export function getLinkProps(
   options?: GetLinkPropsOptions,
 ): LinkProps {
   if (getIframeCapabilities().isEmbedded) {
-    return isSameOrigin(href)
+    return isInternalUrl(href)
       ? { target: "_self" }
       : { target: "_blank", rel: "noopener noreferrer" };
   }
